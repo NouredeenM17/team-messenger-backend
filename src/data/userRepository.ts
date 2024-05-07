@@ -3,9 +3,8 @@ import { IUser } from "../interfaces/IUser";
 
 // Authenticates user
 export const authenticateUser = async (username:string, password:string): Promise<IUser | null> => {
-    console.log(username);
+    
     const user = await userModel.findOne({ username });
-    console.log(user);
 
     if(!user){
         throw new Error('Invalid username or password');
@@ -44,3 +43,16 @@ export const getUserById = async (id: string) => {
     }
 }
 
+// Gets user Id from username (unique)
+export const getUserIdByUsername = async (username: string) => {
+    try {
+        const user = await userModel.findOne({ username });
+        if (user) {
+            return user._id;
+        } else {
+            throw new Error('User not found');
+        }
+    } catch (error: any) {
+        throw new Error(`Error fetching userId: ${error.message}`);
+    }
+}

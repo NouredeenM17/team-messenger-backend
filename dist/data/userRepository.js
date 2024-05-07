@@ -9,13 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserById = exports.createNewUser = exports.authenticateUser = void 0;
+exports.getUserIdByUsername = exports.getUserById = exports.createNewUser = exports.authenticateUser = void 0;
 const userModel_1 = require("../models/userModel");
 // Authenticates user
 const authenticateUser = (username, password) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(username);
     const user = yield userModel_1.userModel.findOne({ username });
-    console.log(user);
     if (!user) {
         throw new Error('Invalid username or password');
     }
@@ -51,3 +49,19 @@ const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getUserById = getUserById;
+// Gets user Id from username (unique)
+const getUserIdByUsername = (username) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = yield userModel_1.userModel.findOne({ username });
+        if (user) {
+            return user._id;
+        }
+        else {
+            throw new Error('User not found');
+        }
+    }
+    catch (error) {
+        throw new Error(`Error fetching userId: ${error.message}`);
+    }
+});
+exports.getUserIdByUsername = getUserIdByUsername;
