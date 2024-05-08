@@ -12,19 +12,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.timestampRoute = void 0;
+exports.getMongoTimestamp = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
-const express_1 = __importDefault(require("express"));
-exports.timestampRoute = express_1.default.Router();
-// GET get MongoDB timestamp
-exports.timestampRoute.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+// get MongoDB timestamp
+const getMongoTimestamp = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const result = yield mongoose_1.default.connection.db.command({ serverStatus: 1 });
-        const currentTimestamp = result.localTime;
-        res.json({ timestamp: currentTimestamp });
+        return result.localTime;
     }
     catch (error) {
         console.error('Error fetching timestamp: ', error.message);
-        res.status(500).json({ error: 'Internal server error' });
     }
-}));
+});
+exports.getMongoTimestamp = getMongoTimestamp;

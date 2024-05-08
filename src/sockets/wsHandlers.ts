@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import { wss } from "..";
 import { ISocketMessage } from "../interfaces/ISocketMessage";
 import { IClientSocket } from "../interfaces/IClientSocket";
+import { getMongoTimestamp } from "../data/DbUtils";
 
 // Store connected clients
 export const clientSockets: Set<IClientSocket> = new Set();
@@ -43,7 +44,11 @@ const handleMessage = (message: ISocketMessage, ws: WebSocket) => {
     }
 };
 
-const handlePlainTextMessage = (message: ISocketMessage) => {
+const handlePlainTextMessage = async (message: ISocketMessage) => {
+    
+    const timestamp = await getMongoTimestamp();
+    message.timestamp = timestamp;
+
     broadcastToRoom(message, message.roomId);
     console.log('plaintext message handled!');
 };
@@ -55,11 +60,21 @@ const handleInitiationMessage = (message: ISocketMessage, ws: WebSocket) => {
         socket: ws
     } 
     clientSockets.add(newClientSocket);
+    console.log('initiation message handled!');
+
+
+    // Send connected user list
+    //broadcastToRoom(message, message.roomId);
 };
 
-const handleFileMessage = (message: ISocketMessage) => {
+const handleFileMessage = async (message: ISocketMessage) => {
     
-};
+    const timestamp = await getMongoTimestamp();
+    message.timestamp = timestamp;
+
+    broadcastToRoom(message, message.roomId);
+    console.log('file message handled!');
+}
 
 const removeDisconnectedClientSockets = () => {
     clientSockets.forEach(client => {
@@ -72,7 +87,12 @@ const removeDisconnectedClientSockets = () => {
 const broadcastToRoom = (message: ISocketMessage ,roomId: string) => {
     clientSockets.forEach(client => {
         if(client.roomId === roomId){
+            
             client.socket.send(JSON.stringify(message));
         }
     })
 };
+
+const getUsersInRoom = (roomId: string) => {
+    
+}
