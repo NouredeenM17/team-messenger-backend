@@ -3,6 +3,7 @@ import { wss } from "..";
 import { ISocketMessage } from "../interfaces/ISocketMessage";
 import { IClientSocket } from "../interfaces/IClientSocket";
 import { getMongoTimestamp } from "../data/DbUtils";
+import { IClosedSocket } from "../interfaces/IClosedSocket";
 
 // Store connected clients
 export const clientSockets: Set<IClientSocket> = new Set();
@@ -22,7 +23,8 @@ export const initWSHandlers = () => {
     // Event handler for client disconnection
     ws.on("close", (ws: WebSocket) => {
       // Remove the client from the set
-      removeDisconnectedClientSockets();
+      //removeDisconnectedClientSockets();
+      removeClientSocket(ws);
       
       console.log("Client disconnected");
     });
@@ -57,14 +59,15 @@ const handleInitiationMessage = (message: ISocketMessage, ws: WebSocket) => {
     // Add new client to the set
     const newClientSocket: IClientSocket = {
         roomId: message.roomId,
+        sender: message.sender!,
         socket: ws
     } 
     clientSockets.add(newClientSocket);
     console.log('initiation message handled!');
 
-
     // Send connected user list
-    //broadcastToRoom(message, message.roomId);
+    const userList: string[] = getUsersInRoom(message.roomId);
+    sendUserList(userList, message.roomId);
 };
 
 const handleFileMessage = async (message: ISocketMessage) => {
@@ -76,13 +79,23 @@ const handleFileMessage = async (message: ISocketMessage) => {
     console.log('file message handled!');
 }
 
-const removeDisconnectedClientSockets = () => {
+const removeClientSocket = (ws: WebSocket) => {
     clientSockets.forEach(client => {
-        if (client.socket.readyState === WebSocket.CLOSED) {
+        if (client.socket.readyState === WebSocket.CLOSED 
+            && ((client.socket as unknown) as IClosedSocket)._closeCode === (ws as unknown) as number) {
+            
+            const roomId = client.roomId;
             clientSockets.delete(client);
+
+            // Send updated connected user list
+            const userList: string[] = getUsersInRoom(roomId);
+            if(userList){
+                sendUserList(userList, roomId);
+            }
+            
         }
     });
-};
+}
 
 const broadcastToRoom = (message: ISocketMessage ,roomId: string) => {
     clientSockets.forEach(client => {
@@ -94,5 +107,22 @@ const broadcastToRoom = (message: ISocketMessage ,roomId: string) => {
 };
 
 const getUsersInRoom = (roomId: string) => {
-    
+    const userArray: string[] = [];
+
+    clientSockets.forEach(client => {
+        if(client.roomId === roomId){
+            userArray.push(client.sender);
+        }
+    });
+
+    return userArray;
+}
+
+const sendUserList = (userList: string[], roomId: string) => {
+    const userListObj = {
+        type: 'userlist',
+        roomId: roomId,
+        userList: userList
+    }
+    broadcastToRoom(userListObj, roomId);
 }

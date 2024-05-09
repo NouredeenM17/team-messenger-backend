@@ -31,7 +31,8 @@ const initWSHandlers = () => {
         // Event handler for client disconnection
         ws.on("close", (ws) => {
             // Remove the client from the set
-            removeDisconnectedClientSockets();
+            //removeDisconnectedClientSockets();
+            removeClientSocket(ws);
             console.log("Client disconnected");
         });
     });
@@ -60,12 +61,14 @@ const handleInitiationMessage = (message, ws) => {
     // Add new client to the set
     const newClientSocket = {
         roomId: message.roomId,
+        sender: message.sender,
         socket: ws
     };
     exports.clientSockets.add(newClientSocket);
     console.log('initiation message handled!');
     // Send connected user list
-    //broadcastToRoom(message, message.roomId);
+    const userList = getUsersInRoom(message.roomId);
+    sendUserList(userList, message.roomId);
 };
 const handleFileMessage = (message) => __awaiter(void 0, void 0, void 0, function* () {
     const timestamp = yield (0, DbUtils_1.getMongoTimestamp)();
@@ -73,10 +76,17 @@ const handleFileMessage = (message) => __awaiter(void 0, void 0, void 0, functio
     broadcastToRoom(message, message.roomId);
     console.log('file message handled!');
 });
-const removeDisconnectedClientSockets = () => {
+const removeClientSocket = (ws) => {
     exports.clientSockets.forEach(client => {
-        if (client.socket.readyState === ws_1.default.CLOSED) {
+        if (client.socket.readyState === ws_1.default.CLOSED
+            && client.socket._closeCode === ws) {
+            const roomId = client.roomId;
             exports.clientSockets.delete(client);
+            // Send updated connected user list
+            const userList = getUsersInRoom(roomId);
+            if (userList) {
+                sendUserList(userList, roomId);
+            }
         }
     });
 };
@@ -88,4 +98,19 @@ const broadcastToRoom = (message, roomId) => {
     });
 };
 const getUsersInRoom = (roomId) => {
+    const userArray = [];
+    exports.clientSockets.forEach(client => {
+        if (client.roomId === roomId) {
+            userArray.push(client.sender);
+        }
+    });
+    return userArray;
+};
+const sendUserList = (userList, roomId) => {
+    const userListObj = {
+        type: 'userlist',
+        roomId: roomId,
+        userList: userList
+    };
+    broadcastToRoom(userListObj, roomId);
 };

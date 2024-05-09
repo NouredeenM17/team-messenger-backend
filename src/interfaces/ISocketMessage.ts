@@ -6,4 +6,5 @@ export interface ISocketMessage {
     sender?: string;
     filename?: string;
     blob?: Blob;
+    userlist?: string[];
 }
