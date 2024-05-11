@@ -24,7 +24,11 @@ exports.userSchema = new mongoose_1.default.Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    rooms: [{
+            type: mongoose_1.default.Schema.Types.ObjectId,
+            ref: 'Room'
+        }]
 });
 // Hashes passwords before saving them to database
 exports.userSchema.pre('save', function (next) {

@@ -8,23 +8,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.timestampRoute = void 0;
-const mongoose_1 = __importDefault(require("mongoose"));
-const express_1 = __importDefault(require("express"));
-exports.timestampRoute = express_1.default.Router();
-// GET get MongoDB timestamp
-exports.timestampRoute.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getRoomById = exports.createNewRoom = void 0;
+const roomModel_1 = require("../models/roomModel");
+// Creates new room
+const createNewRoom = (data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const result = yield mongoose_1.default.connection.db.command({ serverStatus: 1 });
-        const currentTimestamp = result.localTime;
-        res.json({ timestamp: currentTimestamp });
+        return yield roomModel_1.roomModel.create(data);
     }
     catch (error) {
-        console.error('Error fetching timestamp: ', error.message);
-        res.status(500).json({ error: 'Internal server error' });
+        throw new Error(`Error creating room: ${error.message}`);
     }
-}));
+});
+exports.createNewRoom = createNewRoom;
+// Gets room by Id
+const getRoomById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        return yield roomModel_1.roomModel.findById(id);
+    }
+    catch (error) {
+        throw new Error(`Error fetching room: ${error.message}`);
+    }
+});
+exports.getRoomById = getRoomById;

@@ -12,7 +12,11 @@ export const userSchema = new mongoose.Schema<IUser>(
         password: {
             type: String,
             required: true
-        }
+        },
+        rooms: [{ 
+            type: mongoose.Schema.Types.ObjectId, 
+            ref: 'Room' 
+        }]
     }
 );
 

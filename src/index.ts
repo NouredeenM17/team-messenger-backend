@@ -1,8 +1,14 @@
 import { app } from "./app";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import WebSocket from 'ws';
+import { initWSHandlers } from "./sockets/wsHandlers";
 
 dotenv.config();
+
+// Create a WebSocket server
+export const wss = new WebSocket.Server({ port: 8080 });
+initWSHandlers();
 
 if (process.env.DB_URL && process.env.PORT) {
   const dbUrl = process.env.DB_URL;
