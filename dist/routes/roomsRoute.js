@@ -26,7 +26,7 @@ exports.roomsRoute.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, f
         res.status(500).json({ error: error.message });
     }
 }));
-// POST Create New User
+// POST Create New Room
 exports.roomsRoute.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const room = yield (0, roomRepository_1.createNewRoom)(req.body);

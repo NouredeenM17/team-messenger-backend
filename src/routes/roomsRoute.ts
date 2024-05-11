@@ -14,7 +14,7 @@ roomsRoute.get("/:id", async (req, res) => {
   }
 });
 
-// POST Create New User
+// POST Create New Room
 roomsRoute.post("/", async (req, res) => {
   try {
     const room = await createNewRoom(req.body);
